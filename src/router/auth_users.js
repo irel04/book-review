@@ -6,7 +6,6 @@ const regd_users = express.Router();
 let users = [{
 	username: "irel04",
 	password: "1234",
-	bookReview: null
 }];
 
 const isValid = (username) => {
@@ -51,12 +50,11 @@ regd_users.post("/login", (req, res, next) => {
 		const isAuthenticated = authenticatedUser(username, password) 
 
 		if(isAuthenticated){
-			let accessToken = jwt.sign({ data: password }, 'access', { expiresIn: 60 * 60 })
+			let accessToken = jwt.sign({ username }, 'access', { expiresIn: 60 * 60 })
 
 			// Store the access token
 			req.session.authorization = {
-				accessToken, 
-				username
+				accessToken
 			}
 		}
 		
@@ -80,10 +78,81 @@ regd_users.get("/auth/user", (req, res) => {
 })
 
 // Add a book review
-regd_users.put("/auth/review/:isbn", (req, res) => {
-	//Write your code here
-	return res.status(300).json({ message: "Yet to be implemented" });
+regd_users.put("/auth/review/:isbn", (req, res, next) => {
+	try {
+		
+		const { isbn } = req.params
+		const { review } = req.query 
+		const { username } = req.user
+		const book = books[isbn]
+
+		const error = new Error()
+		
+		if(!book){
+			error.message = "ISBN not found"
+			error.status = 404
+
+			throw error
+		}
+
+		if(!review){
+			error.message = "Missing! Review"
+			error.status = 400
+			throw error
+		}
+
+		book.reviews[username] = {
+			description: review
+		}
+
+		const message = "Review Added"
+		const data = book
+
+		return res.status(200).json({ message, data })
+
+	} catch (error) {
+		console.error(error)
+		next(error)
+	}
 });
+
+regd_users.delete("/auth/review/:isbn", (req, res, next) => {
+
+	try {
+		const { isbn } = req.params
+		const { username } = req.user
+
+		const book = books[isbn]
+
+		const error = new Error()
+		if(!book){	
+			error.message = "Book with this ISBN not found"
+			error.status = 404
+
+			throw error
+		}
+
+		if(!book.reviews.hasOwnProperty(username)){
+			error.message = "No book with this username review"
+			error.status = 404
+
+			throw error
+		}
+
+		delete book.reviews[username]
+
+		const data = books
+		const message = "Deleted successfully"
+
+		return res.status(204).json({message, data})
+
+
+	} catch (error) {
+		console.error(error)
+		next(error)
+	}
+
+})
 
 module.exports.authenticated = regd_users;
 module.exports.isValid = isValid;
