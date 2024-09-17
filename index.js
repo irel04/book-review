@@ -42,7 +42,6 @@ app.use(responseFormatter)
 app.use("/customer", customer_routes);
 app.use("/", genl_routes);
 
-
 app.use(errorMiddleWare)
 
 app.listen(PORT, () => console.log("Server is running"));

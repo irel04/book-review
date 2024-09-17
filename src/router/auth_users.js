@@ -60,7 +60,7 @@ regd_users.post("/login", (req, res, next) => {
 			}
 		}
 		
-		res.status(200).json({message: "Login Successfully"})
+		return res.status(200).json({message: "Login Successfully"})
 
 	} catch (error) {
 		const { status, message } = error

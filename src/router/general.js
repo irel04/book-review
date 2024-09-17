@@ -31,8 +31,8 @@ public_users.get('/', function (req, res) {
 	const message = "List of books fetched successfully"
 	const data = books
 
-	return res.status(200).json(data)
-
+	return res.status(200).json({message, data})
+	
 
 });
 
