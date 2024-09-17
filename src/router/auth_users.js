@@ -35,7 +35,7 @@ const authenticatedUser = (username, password) => {
 }
 
 //only registered users can login
-regd_users.post("/login", (req, res) => {
+regd_users.post("/login", (req, res, next) => {
 	try {
 		const { username, password } = req.body
 
@@ -64,7 +64,7 @@ regd_users.post("/login", (req, res) => {
 
 	} catch (error) {
 		const { status, message } = error
-		res.json({message, status}).status(status)
+		next(error)
 	}
 
 });
