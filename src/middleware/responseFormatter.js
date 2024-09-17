@@ -3,13 +3,11 @@
 const responseFormatter = async (req, res, next) => {
 	const originalJson = res.json
 
-	
-	console.log(res.statusCode);
+	// This function will override the res.json throughout the application
 	res.json = (data) => {
-		console.log(res.statusCode);
 		const formattedJson = {
-			success: res.statusCode < 400,
 			statusCode: res.statusCode || 200,
+			success: res.statusCode < 400,
 			message: data.message,
 			data: data.data || null
 		}

@@ -10,6 +10,7 @@ const errorMiddleWare = require("./src/middleware/errorHandler.js");
 const app = express();
 
 app.use(express.json());
+app.use(responseFormatter)
 
 
 app.use("/customer", session({ secret: "fingerprint_customer", resave: true, saveUninitialized: true }))
@@ -26,18 +27,20 @@ app.use("/customer/auth/*", function auth(req, res, next) {
 				req.user = user
 				next()
 			} else {
-				return res.status(401).json({ message: "Token is not valid" })
+				const error = new Error("Token Expired or Invalid")
+				error.status = 401
+				next(error)
 			}
 		})
 	} else {
-		return res.status(401).json({ message: "No token" })
+		const error = new Error("No token")
+		error.status = 401
+		next(error)
 	}
 
 });
 
 const PORT = 5000;
-
-app.use(responseFormatter)
 
 app.use("/customer", customer_routes);
 app.use("/", genl_routes);

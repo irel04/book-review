@@ -74,7 +74,9 @@ regd_users.get("/auth/user", (req, res) => {
 
 	const user = users.find(item => item.username === username)
 
-	res.status(200).json(user)
+	const message = "OK"
+
+	res.status(200).json({message, data: user})
 })
 
 // Add a book review
