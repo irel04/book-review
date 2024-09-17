@@ -24,7 +24,7 @@ public_users.post("/register", (req, res, next) => {
 		})
 
 		const message = "Account created successfully"
-		const {password: userPassword, ...data} = users.find(item => item.username === username)
+		const { password: userPassword, ...data } = users.find(item => item.username === username)
 
 		return res.status(201).json({ data, message })
 
@@ -40,13 +40,29 @@ public_users.post("/register", (req, res, next) => {
 });
 
 // Get the book list available in the shop
-public_users.get('/', function (req, res) {
-	
+public_users.get('/', function (req, res, next) {
 
-	const message = "List of books fetched successfully"
-	const data = books
+	// used Promised base
+	const findBooks = new Promise((resolve, reject) => {
+		setTimeout(() => {
 
-	return res.status(200).json({ message, data })
+			if(!books){
+				const error = new Error("Books are not available")
+				error.status = 404
+
+				reject(error)
+			}
+
+			const message = "List of books fetched successfully"
+			const data = books
+
+			resolve({message, data})
+		}, [500])
+	})
+
+	findBooks.then(result => {
+		return res.status(200).json(result)
+	}).catch(err => next(err))
 
 
 });
@@ -56,93 +72,100 @@ public_users.get('/isbn/:isbn', function (req, res, next) {
 	//Write your code here
 	const { isbn } = req.params
 
-	try {
+	const findOneWithISBN = new Promise((resolve, reject)=> {
+		setTimeout(() => {
+			const book = books[isbn]
 
-		const findOne = books[isbn]
+			if(!book){
+				const error = new Error("Book with this ISBN not found")
+				error.status = 404
 
-		if (!findOne) {
-			const error = new Error("Book not found")
-			error.status = 404
-			throw error
-		}
+				reject(error)
+			}
 
-		const message = `OK`
-		const data = findOne
+			const message = "OK"
+			const data = book
 
-		return res.status(200).json({ message, data })
+			resolve({message, data})
 
-	} catch (error) {
-		console.error(error)
-		next(error)
 
-	}
+		}, [500])
+	})
 
+	findOneWithISBN.then(result => {
+		return res.status(200).json(result)
+	}).catch(err => next(err))
 
 });
 
 // Get book details based on author
 public_users.get('/author/:author', function (req, res, next) {
-	try {
-
 		const { author } = req.params
 		const matchedResult = []
 
-		// Iterate through array to traverse the object
-		for (let isbn in books) {
-			const bookAuthor = books[isbn]?.author
-			if (bookAuthor && bookAuthor.toLowerCase() === author.toLowerCase()) {
-				matchedResult.push(books[isbn])
-			}
-		}
+		const findBookByAuthor = new Promise((resolve, reject) => {
+			setTimeout(() => {
 
-		if (matchedResult.length === 0) {
-			const error = new Error("No book matched with the author")
-			error.status = 400
-			throw error
-		}
+				// Iterate through array to traverse the object
+				for (let isbn in books) {
+					const bookAuthor = books[isbn]?.author
+					if (bookAuthor && bookAuthor.toLowerCase() === author.toLowerCase()) {
+						matchedResult.push(books[isbn])
+					}
+				}
 
-		const message = "OK"
-		const data = matchedResult
+				if (matchedResult.length === 0) {
+					const error = new Error("No book matched with the author")
+					error.status = 400
+					reject(error)
+				}
 
-		return res.status(200).json({ message, data })
+				const message = "OK"
+				const data = matchedResult
 
-	} catch (error) {
-		console.error(error)
-		next(error)
-	}
+				resolve({ message, data })
 
+			}, [500])
+		})
+
+		findBookByAuthor.then(result => {
+			return res.status(200).json(result)
+		}).catch(err => next(err))
 });
 
 // Get all books based on title
 public_users.get('/title/:title', function (req, res, next) {
-	try {
 
-		const { title } = req.params
-		const matchedResult = []
+	const { title } = req.params
+	const matchedResult = []
 
-		// Iterate through array to traverse the object
-		for (let isbn in books) {
-			const bookTitle = books[isbn]?.title
-			if (bookTitle && bookTitle.toLowerCase() === title.toLowerCase()) {
-				matchedResult.push(books[isbn])
+	const findBookByTitle = new Promise((resolve, reject) => {
+		setTimeout(() => {
+			// Iterate through array to traverse the object
+			for (let isbn in books) {
+				const bookTitle = books[isbn]?.title
+				if (bookTitle && bookTitle.toLowerCase() === title.toLowerCase()) {
+					matchedResult.push(books[isbn])
+				}
 			}
-		}
 
-		if (matchedResult.length === 0) {
-			const error = new Error("No book matched with the title")
-			error.status = 400
-			throw error
-		}
+			if (matchedResult.length === 0) {
+				const error = new Error("No book matched with the title")
+				error.status = 400
+				reject(error)
+			}
 
-		const message = "OK"
-		const data = matchedResult
+			const message = "OK"
+			const data = matchedResult
 
-		return res.status(200).json({ message, data })
+			resolve({data, message})
+		}, [500])
+	})
 
-	} catch (error) {
-		console.error(error)
-		next(error)
-	}
+	findBookByTitle.then(result => {
+		return res.status(200).json(result)
+	}).catch(err => next(err))
+
 });
 
 //  Get book review
